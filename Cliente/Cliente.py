@@ -1,4 +1,8 @@
 import socket
+from cryptography.fernet import Fernet
+
+CHAVE_SECRETA = b'6YlxNQwFwHPKsLDX7wYvWcHnB66ZZdq2Rfzklc_mnF0='
+fernet = Fernet(CHAVE_SECRETA)
 
 class ClienteTCP:
     def __init__(self, host='127.0.0.1', porta=5551):
@@ -13,9 +17,14 @@ class ClienteTCP:
                     comando = input("Digite o comando (/help para ajuda, /off para sair): ").strip()
                     if not comando:
                         continue
-                    s.send(comando.encode('utf-8'))
-                    resposta = s.recv(4096).decode('utf-8')
+
+                    dados_cript = fernet.encrypt(comando.encode('utf-8'))
+                    s.send(dados_cript)
+
+                    resposta_cript = s.recv(4096)
+                    resposta = fernet.decrypt(resposta_cript).decode('utf-8')
                     print("Resposta do servidor:\n", resposta)
+
                     if comando == "/off":
                         print("Desconectando do servidor...")
                         break
